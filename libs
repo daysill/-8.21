@@ -1,0 +1,633 @@
+# -8.21<?php
+namespace libs;
+class db{
+    function __construct(){
+        global $config;
+        $host=isset($config["database"]["host"])?$config["database"]["host"]:"localhost";
+        $username=isset($config["database"]["username"])?$config["database"]["username"]:"root";
+        $password=isset($config["database"]["password"])?$config["database"]["password"]:"12345";
+        $dbname=isset($config["database"]["dbname"])?$config["database"]["dbname"]:"";
+        $port=isset($config["database"]["port"])?$config["database"]["port"]:3308;
+
+        $db= new \mysqli($host,$username,$password,$dbname,$port);
+        if($db->connect_error){
+            echo "数据库连接出错";
+        }
+        $db->query("set names utf8");<?php
+
+class engine
+{
+    //1.获取原始数据
+    //2.编译
+    //3.显示到页面当中
+    //4.分配变量
+    private $templateDir = "template";
+    private $compileDir = "compile";
+    private $cacheDir = "cache";
+    public $cache = false;
+
+    private $arr = array();
+
+    private function getDate($file)
+    {
+        $destfile = $this->templateDir . $file;
+        if (is_file($destfile)) {
+            return file_get_contents($destfile);
+        } else {
+            die("this template not found");
+        }
+    }
+
+    public function setTemplateDir($path)
+    {
+        $this->templateDir = $path;
+
+    }
+
+    public function setCompileDir($path)
+    {
+        $this->compileDir = $path;
+
+    }
+
+    public function setCacheDir($path)
+    {
+        $this->cacheDir = $path;
+
+    }
+
+    private function compile($file)
+    {
+        $con = $this->getDate($file);
+        $reg = '/\{(\$[a-zA-Z][^\}]*)\}/';//解析变量
+
+        $one = preg_replace_callback($reg, function ($val) {
+            return '<?php echo ' . $val[1] . '?>';
+        }, $con);//变量解析结束
+
+        $reg1 = '/\{foreach([^\}]*)\}/';
+        $two = preg_replace_callback($reg1, function ($val) {
+            return '<?php foreach(' . $val[1] . '){ ?>';
+        }, $one);//foreach 开始解析结束
+
+        $reg2 = '/\{\/foreach\}/';
+        $three = preg_replace_callback($reg2, function ($val) {
+            return '<?php }?>';
+        }, $two);
+
+        return $three;
+
+
+    }
+
+    function display($file)
+    {
+        $outFileName = $this->compileDir . basename($file, ".html") . ".php";
+        $cacheFileName = $this->cacheDir . basename($file, ".html") . ".html";
+        $inFileName = $this->templateDir . $file;
+
+        if ($this->cache && is_file($cacheFileName)&&filemtime($cacheFileName)>filemtime($inFileName)) {
+            include_once $cacheFileName;
+        } else {
+            if (is_file($outFileName) && filemtime($outFileName) > fileatime($inFileName)) {
+                foreach ($this->arr as $k => $v) {
+                    $$k = $v;
+                }
+                include_once $outFileName;
+
+            } else {
+                $result = $this->compile($file);
+
+                file_put_contents($outFileName, $result);
+                foreach ($this->arr as $k => $v) {
+                    $$k = $v;
+                }
+                if ($this->cache){
+                    ob_start();
+                    include_once $outFileName;
+                    $con=ob_get_contents();
+                    file_put_contents($cacheFileName,$con);
+                    ob_flush();
+                }else{<?php
+class main{
+    function __construct(){
+        global $config;
+       $smarty = new \Smarty();
+        $templateDir=isset($config["smarty"]["templateDir"])?$config["smarty"]["templateDir"]:"template";
+        $compileDir=isset($config["smarty"]["compileDir"])?$config["smarty"]["compileDir"]:"compile";
+        $cacheDir=isset($config["smarty"]["cacheDir"])?$config["smarty"]["cacheDir"]:"cache";
+        $smarty->setTemplateDir(TPL_PATH);
+        $smarty->setCompileDir(COMPILE_PATH);
+        $smarty->setCacheDir(CACHE_PATH);
+        $this->smarty=$smarty;
+
+
+        $host=isset($config["database"]["host"])?$config["database"]["host"]:"localhost";
+        $username=isset($config["database"]["username"])?$config["database"]["username"]:"root";
+        $password=isset($config["database"]["password"])?$config["database"]["password"]:"12345";
+        $dbname=isset($config["database"]["dbname"])?$config["database"]["dbname"]:"";
+        $port=isset($config["database"]["port"])?$config["database"]["port"]:3308;
+
+       $db= new mysqli($host,$username,$password,$dbname,$port);
+       if($db->connect_<?php
+namespace libs;
+if(!defined("MVC")){
+    die("访问路径不合法");
+}
+
+//index.php/模块/控制/动作
+class route{
+    private static $m;//模块
+    private static $c;//类   控制
+    private static $a;//方法 动作
+
+    private function getInfo(){
+        $path=isset($_SERVER["PATH_INFO"])?substr($_SERVER["PATH_INFO"],1):"index/index/int";
+
+        $pathArr=(explode("/",$path));
+
+        self::$m=empty($pathArr[0])?"index":$pathArr[0];
+        self::$c=empty($pathArr[1])?"index":$pathArr[1];
+        self::$a=empty($pathArr[2])?"int":$pathArr[2];
+
+        //echo self::$m."/".self::$c."/".self::$a;
+    }
+
+    function run(){
+    $this->getInfo();
+
+    $mpath=APP_NAME.self::$m;
+    if(is_dir($mpath)) {
+        $curl = $mpath . DIRECTORY_SEPARATOR . self::$c . ".class.php";
+
+        if (is_file($curl)) {
+            include_once $curl;
+
+            if (class_exists(self::$c)){
+
+                $classname=self::$c;
+                $obj=new $classname();
+
+                        if(method_exists($obj,self::$a)){
+                                $method=self::$a;
+                                $obj->$method();
+
+                        }else{
+                            die("this action not exists");
+                        }
+
+            }else {
+                die("this class not exists");
+            }
+
+
+        } else {
+            die("this class file not exists");
+        }
+    } else{
+        die("this module not exists");
+        }
+    }
+}
+
+<?php
+namespace libs;
+
+class smarty{
+    function __construct(){
+        global $config;
+        $smarty = new \Smarty();
+        $templateDir=isset($config["smarty"]["templateDir"])?$config["smarty"]["templateDir"]:"template";
+        $compileDir=isset($config["smarty"]["compileDir"])?$config["smarty"]["compileDir"]:"compile";
+        $cacheDir=isset($config["smarty"]["cacheDir"])?$config["smarty"]["cacheDir"]:"cache";
+        $smarty->setTemplateDir(TPL_PATH);
+        $smarty->setCompileDir(COMPILE_PATH);
+        $smarty->setCacheDir(CACHE_PATH);
+        $this->smarty=$smarty;
+    }
+
+    function assign($attr,$val){
+        $this->smarty->assign($attr,$val);
+    }
+    function display($file){
+        $this->smarty->display($file);
+    }
+}
+<?php
+header("content-type:text/html;charset=utf8");
+
+if(!defined("MVC")){
+    die("访问路径不合法");
+}
+
+//服务起所在的根路径
+define("ROOT_PATH",$_SERVER["DOCUMENT_ROOT"]);
+
+//入口文件的路径
+define("ENTRY_PATH",ROOT_PATH.$_SERVER["SCRIPT_NAME"]);
+//
+//框架所在的路径
+define("MAIN_PATH",dirname(ENTRY_PATH).DIRECTORY_SEPARATOR);
+
+//核心库所在的路径
+define("LIBS_PATH",MAIN_PATH."libs".DIRECTORY_SEPARATOR);
+
+//插件所在的路径
+define("PLU_PATH",MAIN_PATH."plugins".DIRECTORY_SEPARATOR);
+
+//模板所在的路径
+define("TPL_PATH",APP_NAME."template".DIRECTORY_SEPARATOR);
+
+//编译文件所在目录
+define("COMPILE_PATH",APP_NAME."compile".DIRECTORY_SEPARATOR);
+
+//缓存文件所在目录
+define("CACHE_PATH",APP_NAME."cache".DIRECTORY_SEPARATOR);
+//定义smarty的路径
+//以上定义都是各种文件在本低的路径
+define("SMARTY_PATH",LIBS_PATH."smarty".DIRECTORY_SEPARATOR);
+//以下定义通过HTTP协议访问的路径
+define("HOST_ADD","http://".$_SERVER["HTTP_HOST"]);
+
+//单入口文件地址
+define("ENTRY_ADD",HOST_ADD.$_SERVER["SCRIPT_NAME"]);
+
+//框架入口地址
+define("MAIN_ADD",dirname(HOST_ADD.$_SERVER["SCRIPT_NAME"]).DIRECTORY_SEPARATOR);
+
+//当前应用的地址
+define("APP_ADD",MAIN_ADD.APP_DIR_NAME.DIRECTORY_SEPARATOR);
+
+//静态文件的地址
+define("STATIC_ADD",APP_ADD."static".DIRECTORY_SEPARATOR);
+
+//css的地址
+define("CSS_ADD",STATIC_ADD."css".DIRECTORY_SEPARATOR);
+
+//js的地址
+define("JS_ADD",STATIC_ADD."js".DIRECTORY_SEPARATOR);
+
+//img的地址
+define("IMG_ADD",STATIC_ADD."imgs".DIRECTORY_SEPARATOR);
+
+//font地址
+define("FONT_ADD",STATIC_ADD."font".DIRECTORY_SEPARATOR);
+
+//echo "<pre>";
+//var_dump(CSS_ADD);
+//var_dump($_SERVER);//当前程序运行所在的目录
+//include_once LIBS_PATH."engine.class.php";
+$config=include_once APP_<?php
+namespace libs;
+
+class smarty{
+    function __construct(){
+        global $config;
+        $smarty = new \Smarty();
+        $templateDir=isset($config["smarty"]["templateDir"])?$config["smarty"]["templateDir"]:"template";
+        $compileDir=isset($config["smarty"]["compileDir"])?$config["smarty"]["compileDir"]:"compile";
+        $cacheDir=isset($config["smarty"]["cacheDir"])?$config["smarty"]["cacheDir"]:"cache";
+        $smarty->setTemplateDir(TPL_PATH);
+        $smarty->setCompileDir(COMPILE_PATH);
+        $smarty->setCacheDir(CACHE_PATH);
+        $this->smarty=$smarty;
+    }
+
+    function assign($attr,$val){
+        $this->smarty->assign($attr,$val);
+    }
+    function display($file){
+        $this->smarty->display($file);
+    }
+}
+<?php
+header("content-type:text/html;charset=utf8");
+
+if(!defined("MVC")){
+    die("访问路径不合法");
+}
+
+//服务起所在的根路径
+define("ROOT_PATH",$_SERVER["DOCUMENT_ROOT"]);
+
+//入口文件的路径
+define("ENTRY_PATH",ROOT_PATH.$_SERVER["SCRIPT_NAME"]);
+//
+//框架所在的路径
+define("MAIN_PATH",dirname(ENTRY_PATH).DIRECTORY_SEPARATOR);
+
+//核心库所在的路径
+define("LIBS_PATH",MAIN_PATH."libs".DIRECTORY_SEPARATOR);
+
+//插件所在的路径
+define("PLU_PATH",MAIN_PATH."plugins".DIRECTORY_SEPARATOR);
+
+//模板所在的路径
+define("TPL_PATH",APP_NAME."template".DIRECTORY_SEPARATOR);
+
+//编译文件所在目录
+define("COMPILE_PATH",APP_NAME."compile".DIRECTORY_SEPARATOR);
+
+//缓存文件所在目录
+define("CACHE_PATH",APP_NAME."cache".DIRECTORY_SEPARATOR);
+//定义smarty的路径
+//以上定义都是各种文件在本低的路径
+define("SMARTY_PATH",LIBS_PATH."smarty".DIRECTORY_SEPARATOR);
+//以下定义通过HTTP协议访问的路径
+define("HOST_ADD","http://".$_SERVER["HTTP_HOST"]);
+
+//单入口文件地址
+define("ENTRY_ADD",HOST_ADD.$_SERVER["SCRIPT_NAME"]);
+
+//框架入口地址
+define("MAIN_ADD",dirname(HOST_ADD.$_SERVER["SCRIPT_NAME"]).DIRECTORY_SEPARATOR);
+
+//当前应用的地址
+define("APP_ADD",MAIN_ADD.APP_DIR_NAME.DIRECTORY_SEPARATOR);
+
+//静态文件的地址
+define("STATIC_ADD",APP_ADD."static".DIRECTORY_SEPARATOR);
+
+//css的地址
+define("CSS_ADD",STATIC_ADD."css".DIRECTORY_SEPARATOR);
+
+//js的地址
+define("JS_ADD",STATIC_ADD."js".DIRECTORY_SEPARATOR);
+
+//img的地址
+define("IMG_ADD",STATIC_ADD."imgs".DIRECTORY_SEPARATOR);
+
+//font地址
+define("FONT_ADD",STATIC_ADD."font".DIRECTORY_SEPARATOR);
+
+//echo "<pre>";
+//var_dump(CSS_ADD);
+//var_dump($_SERVER);//当前程序运行所在的目录
+//include_once LIBS_PATH."engine.class.php";
+$config=include_once APP_NAME."config.php";
+include_once SMARTY_PATH."Smarty.class.php";
+include_once LIBS_PATH."route.class.php";
+//include_once LIBS_PATH."main.class.php";
+function auto($classname){
+    include_once MAIN_PATH.str_replace("\\",DIRECTORY_SEPARATOR,$classname).".class.php";
+}
+spl_autoload_register("auto");
+
+$router=new \libs\route();
+//$router->getInfo();
+$router->run();
+?>
+<?php
+namespace libs;
+if(!defined("MVC")){
+    die("访问路径不合法");
+}
+
+//index.php/模块/控制/动作
+class route{
+    private static $m;//模块
+    private static $c;//类   控制
+    private static $a;//方法 动作
+
+    private function getInfo(){
+        $path=isset($_SERVER["PATH_INFO"])?substr($_SERVER["PATH_INFO"],1):"index/index/int";
+
+        $pathArr=(explode("/",$path));
+
+        self::$m=empty($pathArr[0])?"index":$pathArr[0];
+        self::$c=empty($pathArr[1])?"index":$pathArr[1];
+        self::$a=empty($pathArr[2])?"int":$pathArr[2];
+
+        //echo self::$m."/".self::$c."/".self::$a;
+    }
+
+    function run(){
+    $this->getInfo();
+
+    $mpath=APP_NAME.self::$m;
+    if(is_dir($mpath)) {
+        $curl = $mpath . DIRECTORY_SEPARATOR . self::$c . ".class.php";
+
+        if (is_file($curl)) {
+            include_once $curl;
+
+            if (class_exists(self::$c)){
+
+                $classname=self::$c;
+                $obj=new $classname();
+
+                        if(method_exists($obj,self::$a)){
+                                $method=self::$a;
+                                $obj->$method();
+
+                        }else{
+                            die("this action not exists");
+                        }
+
+            }else {
+                die("this class no<?php
+header("content-type:text/html;charset=utf8");
+
+if(!defined("MVC")){
+    die("访问路径不合法");
+}
+
+//服务起所在的根路径
+define("ROOT_PATH",$_SERVER["DOCUMENT_ROOT"]);
+
+//入口文件的路径
+define("ENTRY_PATH",ROOT_PATH.$_SERVER["SCRIPT_NAME"]);
+//
+//框架所在的路径
+define("MAIN_PATH",dirname(ENTRY_PATH).DIRECTORY_SEPARATOR);
+
+//核心库所在的路径
+define("LIBS_PATH",MAIN_PATH."libs".DIRECTORY_SEPARATOR);
+
+//插件所在的路径
+define("PLU_PATH",MAIN_PATH."plugins".DIRECTORY_SEPARATOR);
+
+//模板所在的路径
+define("TPL_PATH",APP_NAME."template".DIRECTORY_SEPARATOR);
+
+//编译文件所在目录
+define("COMPILE_PATH",APP_NAME."compile".DIRECTORY_SEPARATOR);
+
+//缓存文件所在目录
+define("CACHE_PATH",APP_NAME."cache".DIRECTORY_SEPARATOR);
+//定义smarty的路径
+//以上定义都是各种文件在本低的路径
+define("SMARTY_PATH",LIBS_PATH."smarty".DIRECTORY_SEPARATOR);
+//以下定义通过HTTP协议访问的路径
+define("HOST_ADD","http://".$_SERVER["HTTP_HOST"]);
+
+//单入口文件地址
+define("ENTRY_ADD",HOST_ADD.$_SERVER["SCRIPT_NAME"]);
+
+//框架入口地址
+define("MAIN_ADD",dirname(HOST_ADD.$_SERVER["SCRIPT_NAME"]).DIRECTORY_SEPARATOR);
+
+//当前应用的地址
+define("APP_ADD",MAIN_ADD.APP_DIR_NAME.DIRECTORY_SEPARATOR);
+
+//静态文件的地址
+define("STATIC_ADD",APP_ADD."static".DIRECTORY_SEPARATOR);
+
+//css的地址
+define("CSS_ADD",STATIC_ADD."css".DIRECTORY_SEPARATOR);
+
+//js的地址
+define("JS_ADD",STATIC_ADD."js".DIRECTORY_SEPARATOR);
+
+//img的地址
+define("IMG_ADD",STATIC_ADD."imgs".DIRECTORY_SEPARATOR);
+
+//font地址
+define("FONT_ADD",STATIC_ADD."font".DIRECTORY_SEPARATOR);
+
+//echo "<pre>";
+//var_dump(CSS_ADD);
+//var_dump($_SERVER);//当前程序运行所在的目录
+//include_once LIBS_PATH."engine.class.php";
+$config=include_once APP_NAME."config.php";
+include_once SMARTY_PATH."Smarty.class.php";
+include_once LIBS_PATH."route.class.php";
+//include_once LIBS_PATH."main.class.php";
+function auto($classname){
+    include_once MAIN_PATH.str_replace("\\",DIRECTORY_SEPARATOR,$classname).".class.php";
+}
+spl_autoload_register("auto");
+
+$router=new \libs\route();
+//$router->getInfo();
+$router->run();
+?>
+<?php
+namespace libs;
+if(!defined("MVC")){
+    die("访问路径不合法");
+}
+
+//index.php/模块/控制/动作
+class route{
+    private static $m;//模块
+    private static $c;//类   控制
+    private static $a;//方法 动作
+
+    private function getInfo(){
+        $path=isset($_SERVER["PATH_INFO"])?substr($_SERVER["PATH_INFO"],1):"index/index/int";
+
+        $pathArr=(explode("/",$path));
+
+        self::$m=empty($pathArr[0])?"index":$pathArr[0];
+        self::$c=empty($pathArr[1])?"index":$pathArr[1];
+        self::$a=empty($pathArr[2])?"int":$pathArr[2];
+
+        //echo self::$m."/".self::$c."/".self::$a;
+    }
+
+    function run(){
+    $this->getInfo();
+
+    $mpath=APP_NAME.self::$m;
+    if(is_dir($mpath)) {
+        $curl = $mpath . DIRECTORY_SEPARATOR . self::$c . ".class.php";
+
+        if (is_file($curl)) {
+            include_once $curl;
+
+            if (class_exists(self::$c)){
+
+                $classname=self::$c;
+                $obj=new $classname();
+
+                        if(method_exists($obj,self::$a)){
+                                $method=self::$a;
+                                $obj->$method();
+
+                        }else{
+                            die("this action not exists");
+                        }
+
+            }else {
+                die("this class not exists");
+            }
+
+
+        } else {
+            die("this class file not exists");
+        }
+    } else{
+        die("this module not exists");
+        }
+    }
+}
+
+<?php
+namespace libs;
+
+class smarty{
+    function __construct(){
+        global $config;
+        $smarty = new \Smarty();
+        $templateDir=isset($config["smarty"]["templateDir"])?$config["smarty"]["templateDir"]:"template";
+        $compileDir=isset($config["smarty"]["compileDir"])?$config["smarty"]["compileDir"]:"compile";
+        $cacheDir=isset($config["smarty"]["cacheDir"])?$config["smarty"]["cacheDir"]:"cache";
+        $smarty->setTemplateDir(TPL_PATH);
+        $smarty->setCompileDir(COMPILE_PATH);
+        $smarty->setCacheDir(CACHE_PATH);
+        $this->smarty=$smarty;
+    }
+
+    function assign($attr,$val){
+        $this->smarty->assign($attr,$val);
+    }
+    function display($file){
+        $this->smarty->display($file);
+    }
+}t exists");
+            }
+
+
+        } else {
+            die("this class file not exists");
+        }
+    } else{
+        die("this module not exists");
+        }
+    }
+}
+NAME."config.php";
+include_once SMARTY_PATH."Smarty.class.php";
+include_once LIBS_PATH."route.class.php";
+//include_once LIBS_PATH."main.class.php";
+function auto($classname){
+    include_once MAIN_PATH.str_replace("\\",DIRECTORY_SEPARATOR,$classname).".class.php";
+}
+spl_autoload_register("auto");
+
+$router=new \libs\route();
+//$router->getInfo();
+$router->run();
+?>error){
+           echo "数据库连接出错";
+       }
+       $db->query("set names utf8");
+       $this->db=$db;
+    }
+}include_once $outFileName;}
+
+            }
+        }
+    }
+
+    function assign($attr, $val)
+    {
+        $this->arr[$attr] = $val;
+    }
+}
+
+
+        $this->db=$db;
+    }
+}
